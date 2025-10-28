@@ -16,16 +16,14 @@ export function Toolbar({ currentView = 'board', onViewChange }: ToolbarProps) {
   ];
 
   return (
-    <div
-      className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center"
-      onMouseEnter={() => setIsOpen(true)}
-      onMouseLeave={() => setIsOpen(false)}
-    >
+    <div className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center">
       {/* Toolbar content */}
       <div
-        className={`h-auto bg-primary rounded-r-md transition-all duration-200 ease-in-out py-2 ${
+        className={`h-auto bg-primary rounded-r-md transition-all ease-in-out py-2 ${
           isOpen ? 'pr-2' : 'w-0 overflow-hidden'
         }`}
+        onMouseEnter={() => setIsOpen(true)}
+        onMouseLeave={() => setIsOpen(false)}
       >
         {/* Icon list */}
         <div className={`flex flex-col items-center gap-2 ${isOpen ? '' : 'invisible'}`}>
@@ -57,7 +55,10 @@ export function Toolbar({ currentView = 'board', onViewChange }: ToolbarProps) {
 
       {/* Toggle button - only shown when collapsed */}
       {!isOpen && (
-        <button className="w-4 h-10 bg-primary flex items-center justify-center rounded-r text-gray-400 hover:text-white transition-colors">
+        <button
+          className="w-4 h-10 bg-primary flex items-center justify-center rounded-r text-gray-400 hover:text-white transition-colors"
+          onMouseEnter={() => setIsOpen(true)}
+        >
           <ChevronRight size={14} />
         </button>
       )}
