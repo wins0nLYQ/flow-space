@@ -33,13 +33,18 @@ export function Toolbar({ currentView = 'board', onViewChange }: ToolbarProps) {
               <button
                 key={view.id}
                 onClick={() => onViewChange?.(view.id)}
-                className={`w-8 h-8 flex items-center justify-center rounded-md transition-colors ${
+                className={`relative group w-8 h-8 flex items-center justify-center rounded-md transition-colors ${
                   isActive
                     ? 'bg-secondary text-white'
                     : 'text-gray-400 hover:text-white hover:bg-secondary/50'
                 }`}
               >
                 <Icon size={20} />
+
+                {/* Tooltip */}
+                <div className="absolute left-full ml-2 text-sm text-white opacity-0 group-hover:opacity-100 transition-opacity delay-[1500ms] pointer-events-none whitespace-nowrap">
+                  {view.label}
+                </div>
               </button>
             );
           })}
