@@ -49,7 +49,7 @@ export function Toolbar({ currentView = 'board', onViewChange }: ToolbarProps) {
       {/* Toggle button - sticks to right of toolbar */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-5 h-8 bg-primary flex items-center justify-center rounded-r text-gray-400 hover:text-white transition-colors"
+        className="w-4 h-10 bg-primary flex items-center justify-center rounded-r text-gray-400 hover:text-white transition-colors"
       >
         {isOpen ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
       </button>
