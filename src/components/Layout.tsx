@@ -1,10 +1,12 @@
+import { Toolbar } from './Toolbar';
+
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 export function Layout({ children }: LayoutProps) {
   return (
-    <div className="p-3 min-h-screen bg-primary flex flex-col gap-1.25">
+    <div className="p-2 min-h-screen bg-primary flex flex-col gap-1.25">
       {/* Header */}
       <header className="bg-primary">
         <div className="flex items-center">
@@ -13,7 +15,8 @@ export function Layout({ children }: LayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="bg-secondary rounded-md p-6 flex-1">
+      <main className="bg-secondary rounded-md p-6 flex-1 relative">
+        <Toolbar />
         {children}
       </main>
     </div>
