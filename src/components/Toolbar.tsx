@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { LayoutGrid, List, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutGrid, List, Calendar, ChevronRight } from 'lucide-react';
 
 interface ToolbarProps {
   currentView?: 'board' | 'list' | 'calendar';
@@ -7,7 +7,7 @@ interface ToolbarProps {
 }
 
 export function Toolbar({ currentView = 'board', onViewChange }: ToolbarProps) {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   const views = [
     { id: 'board' as const, icon: LayoutGrid, label: 'Board' },
@@ -16,10 +16,14 @@ export function Toolbar({ currentView = 'board', onViewChange }: ToolbarProps) {
   ];
 
   return (
-    <div className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center">
+    <div
+      className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center"
+      onMouseEnter={() => setIsOpen(true)}
+      onMouseLeave={() => setIsOpen(false)}
+    >
       {/* Toolbar content */}
       <div
-        className={`h-auto bg-primary rounded-r-md transition-all duration-150 ease-in-out py-2 ${
+        className={`h-auto bg-primary rounded-r-md transition-all duration-200 ease-in-out py-2 ${
           isOpen ? 'pr-2' : 'w-0 overflow-hidden'
         }`}
       >
@@ -42,7 +46,7 @@ export function Toolbar({ currentView = 'board', onViewChange }: ToolbarProps) {
                 <Icon size={20} />
 
                 {/* Tooltip */}
-                <div className="absolute left-full ml-2 text-sm text-white opacity-0 group-hover:opacity-100 transition-opacity delay-[1500ms] pointer-events-none whitespace-nowrap">
+                <div className="absolute left-full ml-2 text-sm text-white opacity-0 group-hover:opacity-100 group-hover:delay-[800ms] transition-opacity duration-0 pointer-events-none whitespace-nowrap">
                   {view.label}
                 </div>
               </button>
@@ -51,13 +55,12 @@ export function Toolbar({ currentView = 'board', onViewChange }: ToolbarProps) {
         </div>
       </div>
 
-      {/* Toggle button - sticks to right of toolbar */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-4 h-10 bg-primary flex items-center justify-center rounded-r text-gray-400 hover:text-white transition-colors"
-      >
-        {isOpen ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
-      </button>
+      {/* Toggle button - only shown when collapsed */}
+      {!isOpen && (
+        <button className="w-4 h-10 bg-primary flex items-center justify-center rounded-r text-gray-400 hover:text-white transition-colors">
+          <ChevronRight size={14} />
+        </button>
+      )}
     </div>
   );
 }
