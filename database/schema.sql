@@ -117,7 +117,6 @@ $$ language 'plpgsql';
 CREATE TRIGGER task_update_project_progress
 AFTER INSERT OR UPDATE OR DELETE ON tasks
 FOR EACH ROW
-WHEN (NEW.project_id IS NOT NULL OR OLD.project_id IS NOT NULL)
 EXECUTE FUNCTION calculate_project_progress();
 
 -- Insert default space and list for testing

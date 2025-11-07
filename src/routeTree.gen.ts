@@ -10,33 +10,52 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SpacesSpaceIdRouteImport } from './routes/spaces/$spaceId'
+import { Route as SpacesSpaceIdBoardRouteImport } from './routes/spaces/$spaceId/board'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SpacesSpaceIdRoute = SpacesSpaceIdRouteImport.update({
+  id: '/spaces/$spaceId',
+  path: '/spaces/$spaceId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SpacesSpaceIdBoardRoute = SpacesSpaceIdBoardRouteImport.update({
+  id: '/board',
+  path: '/board',
+  getParentRoute: () => SpacesSpaceIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/spaces/$spaceId': typeof SpacesSpaceIdRouteWithChildren
+  '/spaces/$spaceId/board': typeof SpacesSpaceIdBoardRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/spaces/$spaceId': typeof SpacesSpaceIdRouteWithChildren
+  '/spaces/$spaceId/board': typeof SpacesSpaceIdBoardRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/spaces/$spaceId': typeof SpacesSpaceIdRouteWithChildren
+  '/spaces/$spaceId/board': typeof SpacesSpaceIdBoardRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/spaces/$spaceId' | '/spaces/$spaceId/board'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/spaces/$spaceId' | '/spaces/$spaceId/board'
+  id: '__root__' | '/' | '/spaces/$spaceId' | '/spaces/$spaceId/board'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SpacesSpaceIdRoute: typeof SpacesSpaceIdRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +67,38 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/spaces/$spaceId': {
+      id: '/spaces/$spaceId'
+      path: '/spaces/$spaceId'
+      fullPath: '/spaces/$spaceId'
+      preLoaderRoute: typeof SpacesSpaceIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/spaces/$spaceId/board': {
+      id: '/spaces/$spaceId/board'
+      path: '/board'
+      fullPath: '/spaces/$spaceId/board'
+      preLoaderRoute: typeof SpacesSpaceIdBoardRouteImport
+      parentRoute: typeof SpacesSpaceIdRoute
+    }
   }
 }
 
+interface SpacesSpaceIdRouteChildren {
+  SpacesSpaceIdBoardRoute: typeof SpacesSpaceIdBoardRoute
+}
+
+const SpacesSpaceIdRouteChildren: SpacesSpaceIdRouteChildren = {
+  SpacesSpaceIdBoardRoute: SpacesSpaceIdBoardRoute,
+}
+
+const SpacesSpaceIdRouteWithChildren = SpacesSpaceIdRoute._addFileChildren(
+  SpacesSpaceIdRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SpacesSpaceIdRoute: SpacesSpaceIdRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
