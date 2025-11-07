@@ -24,6 +24,7 @@ function Home() {
       navigate({ to: `/spaces/${newSpace.id}/board` });
     } catch (error) {
       console.error('Failed to create space:', error);
+    } finally {
       setIsCreating(false);
     }
   };
