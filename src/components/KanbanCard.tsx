@@ -1,6 +1,16 @@
+import { useState, useRef, useEffect } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { CheckCircle, Edit, MoreVertical, Trash2 } from 'lucide-react';
 import type { Task } from '@/types';
+import { useUpdateTask, useUpdateTaskStatus, useDeleteTask } from '@/hooks/useTasks';
+import { Button } from '@/components/ui/button';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 interface KanbanCardProps {
   task: Task;
@@ -8,6 +18,14 @@ interface KanbanCardProps {
 }
 
 export function KanbanCard({ task, onClick }: KanbanCardProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedTitle, setEditedTitle] = useState(task.title);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const updateTask = useUpdateTask();
+  const updateTaskStatus = useUpdateTaskStatus();
+  const deleteTask = useDeleteTask();
+
   const {
     attributes,
     listeners,
@@ -23,6 +41,66 @@ export function KanbanCard({ task, onClick }: KanbanCardProps) {
     opacity: isDragging ? 0.5 : 1,
   };
 
+  // Focus input when entering edit mode
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
+  const handleMarkComplete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await updateTaskStatus.mutateAsync({
+        id: task.id,
+        status: 'Done',
+      });
+    } catch (error) {
+      console.error('Failed to mark task as complete:', error);
+    }
+  };
+
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsEditing(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (editedTitle.trim() && editedTitle !== task.title) {
+      try {
+        await updateTask.mutateAsync({
+          id: task.id,
+          input: { title: editedTitle.trim() },
+        });
+      } catch (error) {
+        console.error('Failed to update task title:', error);
+        setEditedTitle(task.title);
+      }
+    } else {
+      setEditedTitle(task.title);
+    }
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSaveEdit();
+    } else if (e.key === 'Escape') {
+      setEditedTitle(task.title);
+      setIsEditing(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await deleteTask.mutateAsync(task.id);
+      setIsPopoverOpen(false);
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+    }
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -30,9 +108,82 @@ export function KanbanCard({ task, onClick }: KanbanCardProps) {
       {...attributes}
       {...listeners}
       onClick={onClick}
-      className="border bg-secondary/10 p-3 rounded-md cursor-pointer hover:bg-secondary/40 transition-colors group"
+      className="relative border border-secondary p-3 rounded-md cursor-pointer transition-colors group bg-secondary/10"
     >
-      <h4 className="font-medium text-sm mb-1">{task.title}</h4>
+      {/* Hover Actions */}
+      <div className={cn(
+        "absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex border border-secondary bg-secondary/10 rounded-md p-0.5",
+        isPopoverOpen && "opacity-100"
+      )}>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={handleMarkComplete}
+          disabled={task.status === 'Done'}
+          className="h-6 w-6 bg-transparent backdrop-blur-sm shadow-sm hover:bg-secondary!"
+          title="Mark complete"
+        >
+          <CheckCircle className="h-3.5 w-3.5" />
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={handleEditClick}
+          className="h-6 w-6 bg-transparent backdrop-blur-sm shadow-sm hover:bg-secondary!"
+          title="Edit task name"
+        >
+          <Edit className="h-3.5 w-3.5" />
+        </Button>
+
+        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+          <PopoverTrigger asChild onClick={(e) => e.stopPropagation()}>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="h-6 w-6 bg-transparent backdrop-blur-sm shadow-sm hover:bg-secondary!"
+              title="More actions"
+            >
+              <MoreVertical className="h-3.5 w-3.5" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            className="w-48 p-1"
+            align="end"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDelete();
+              }}
+            >
+              <Trash2 className="h-2 w-2 mr-2" />
+              Delete Task
+            </Button>
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      {/* Task Title - Editable */}
+      {isEditing ? (
+        <input
+          ref={inputRef}
+          type="text"
+          value={editedTitle}
+          onChange={(e) => setEditedTitle(e.target.value)}
+          onBlur={handleSaveEdit}
+          onKeyDown={handleKeyDown}
+          onClick={(e) => e.stopPropagation()}
+          className="font-medium text-sm mb-1 w-full bg-background border border-ring rounded px-2 py-1 outline-none focus:ring-2 focus:ring-ring"
+        />
+      ) : (
+        <h4 className="font-medium text-sm mb-1 pr-20">{task.title}</h4>
+      )}
+
       {task.description && (
         <p className="text-xs text-gray-400 line-clamp-2">{task.description}</p>
       )}
