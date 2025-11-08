@@ -111,6 +111,9 @@ export function KanbanBoard({ spaceId, lists }: KanbanBoardProps) {
 
   return (
     <>
+      <div>
+        <h1>Board</h1>
+      </div>
       <DndContext
         sensors={sensors}
         onDragStart={handleDragStart}
@@ -118,17 +121,14 @@ export function KanbanBoard({ spaceId, lists }: KanbanBoardProps) {
         onDragCancel={handleDragCancel}
       >
         <div className="flex-1 overflow-x-auto">
-          <div className="flex gap-4 h-full pb-4">
+          <div className="flex gap-2 h-full pb-4">
             {columns.map((column) => (
               <KanbanColumn
                 key={column}
                 id={column}
                 title={column}
                 tasks={tasksByStatus[column] || []}
-                onAddTask={() => {
-                  // TODO: Implement add task dialog
-                  console.log('Add task to', column);
-                }}
+                listId={mainList.id}
                 onTaskClick={(task) => {
                   // TODO: Implement task detail dialog
                   console.log('Open task', task);

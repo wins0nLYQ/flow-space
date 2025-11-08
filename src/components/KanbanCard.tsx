@@ -30,7 +30,7 @@ export function KanbanCard({ task, onClick }: KanbanCardProps) {
       {...attributes}
       {...listeners}
       onClick={onClick}
-      className="bg-secondary p-3 rounded-md cursor-pointer hover:bg-[#323232] transition-colors group"
+      className="border bg-secondary/10 p-3 rounded-md cursor-pointer hover:bg-secondary/40 transition-colors group"
     >
       <h4 className="font-medium text-sm mb-1">{task.title}</h4>
       {task.description && (

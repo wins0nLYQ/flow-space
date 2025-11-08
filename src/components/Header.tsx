@@ -28,12 +28,12 @@ export function Header() {
           onValueChange={handleSpaceChange}
           disabled={isLoading}
         >
-          <SelectTrigger className="w-[200px] text-md font-semibold border-none bg-secondary text-secondary-foreground hover:bg-secondary/50 focus:ring-0">
+          <SelectTrigger className="w-[200px] text-sm font-semibold border-none bg-secondary text-secondary-foreground hover:bg-secondary/70 focus:ring-0">
             <SelectValue placeholder="Select a space">
               {currentSpace?.name || 'FlowSpace'}
             </SelectValue>
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className='w-[200px]'>
             {spaces?.map((space) => (
               <SelectItem key={space.id} value={space.id}>
                 {space.name}
