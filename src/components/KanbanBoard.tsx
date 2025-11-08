@@ -1,13 +1,15 @@
 import { useState, useMemo } from 'react';
 import {
   DndContext,
-  DragEndEvent,
-  DragOverEvent,
   DragOverlay,
-  DragStartEvent,
   PointerSensor,
   useSensor,
   useSensors,
+} from '@dnd-kit/core';
+import type {
+  DragEndEvent,
+  DragOverEvent,
+  DragStartEvent,
 } from '@dnd-kit/core';
 import { KanbanColumn } from './KanbanColumn';
 import { KanbanCard } from './KanbanCard';
