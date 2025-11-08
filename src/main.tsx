@@ -7,6 +7,10 @@ import { routeTree } from './routeTree.gen'
 
 import './styles.css'
 import reportWebVitals from './reportWebVitals.ts'
+import { initializeTheme } from './lib/theme'
+
+// Initialize theme before rendering
+initializeTheme()
 
 // Create a new router instance
 const router = createRouter({

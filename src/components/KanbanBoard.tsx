@@ -111,19 +111,6 @@ export function KanbanBoard({ spaceId, lists }: KanbanBoardProps) {
 
   return (
     <>
-      <div className="mb-4 flex items-center justify-between">
-        <div className="text-sm text-gray-400">
-          {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
-        </div>
-        <button
-          onClick={() => setShowColumnEditor(true)}
-          className="flex items-center gap-2 px-3 py-1.5 bg-secondary hover:bg-[#323232] rounded text-sm transition-colors"
-        >
-          <Settings size={14} />
-          Edit Columns
-        </button>
-      </div>
-
       <DndContext
         sensors={sensors}
         onDragStart={handleDragStart}

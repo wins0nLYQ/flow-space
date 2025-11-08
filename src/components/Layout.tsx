@@ -1,4 +1,5 @@
 import { Toolbar } from './Toolbar';
+import { Header } from './Header';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -6,13 +7,8 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   return (
-    <div className="p-2 min-h-screen bg-primary flex flex-col gap-1.25">
-      {/* Header */}
-      <header className="bg-primary">
-        <div className="flex items-center">
-          <h1 className="text-xl font-semibold">FlowSpace</h1>
-        </div>
-      </header>
+    <div className="p-2 min-h-screen bg-primary flex flex-col gap-1.5">
+      <Header />
 
       {/* Main Content */}
       <main className="bg-secondary rounded-md p-6 flex-1 relative">

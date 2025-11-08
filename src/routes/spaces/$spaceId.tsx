@@ -27,14 +27,6 @@ function SpaceLayout() {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Space header */}
-      <div className="mb-4">
-        <h2 className="text-2xl font-bold">{space.name}</h2>
-        {space.description && (
-          <p className="text-gray-400 text-sm mt-1">{space.description}</p>
-        )}
-      </div>
-
       {/* View content */}
       <div className="flex-1 overflow-auto">
         <Outlet />
