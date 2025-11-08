@@ -108,11 +108,11 @@ export function KanbanCard({ task, onClick }: KanbanCardProps) {
       {...attributes}
       {...listeners}
       onClick={onClick}
-      className="relative border border-secondary p-3 rounded-md cursor-pointer transition-colors group bg-secondary/10"
+      className="relative border border-border/40 p-3 rounded-md cursor-pointer transition-colors group bg-secondary"
     >
       {/* Hover Actions */}
       <div className={cn(
-        "absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex border border-secondary bg-secondary/10 rounded-md p-0.5",
+        "absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex border border-border/50 bg-secondary/10 rounded-md p-0.5",
         isPopoverOpen && "opacity-100"
       )}>
         <Button
