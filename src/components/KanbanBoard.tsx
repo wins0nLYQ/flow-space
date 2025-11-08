@@ -96,30 +96,35 @@ export function KanbanBoard({ lists }: KanbanBoardProps) {
 
     if (!activeTask) return;
 
-    // Determine the target status
-    let targetStatus: string;
-
-    if (overTask) {
-      // Dragging over another task - use that task's status
-      targetStatus = overTask.status;
-    } else {
-      // Dragging over a column - check if it's a valid column
+    // Only process when dragging over another task
+    // When dragging over empty space or non-task elements (like "Add Task" button),
+    // we preserve the current localTasks state to prevent jumping back
+    if (!overTask) {
+      // Check if dragging over a column container for cross-column moves
       const isValidColumn = mainList?.status_columns?.includes(overId);
-      if (isValidColumn) {
-        targetStatus = overId;
-      } else {
-        return;
+      if (isValidColumn && activeTask.status !== overId) {
+        // Moving to a different column - just update status, keep position
+        setLocalTasks((tasks) => {
+          const activeIndex = tasks.findIndex((t) => t.id === activeId);
+          if (activeIndex === -1) return tasks;
+
+          const updatedTasks = [...tasks];
+          updatedTasks[activeIndex] = { ...activeTask, status: overId };
+          return updatedTasks;
+        });
       }
+      // Otherwise, do nothing - preserve current order
+      return;
     }
+
+    const targetStatus = overTask.status;
 
     // Update local state for immediate UI feedback
     setLocalTasks((tasks) => {
       const activeIndex = tasks.findIndex((t) => t.id === activeId);
-      const overIndex = overTask
-        ? tasks.findIndex((t) => t.id === overId)
-        : tasks.findIndex((t) => t.status === targetStatus);
+      const overIndex = tasks.findIndex((t) => t.id === overId);
 
-      if (activeIndex === -1) return tasks;
+      if (activeIndex === -1 || overIndex === -1) return tasks;
 
       // If moving to a different column
       if (activeTask.status !== targetStatus) {
@@ -129,7 +134,7 @@ export function KanbanBoard({ lists }: KanbanBoardProps) {
       }
 
       // If reordering within the same column
-      if (overIndex !== -1 && activeIndex !== overIndex) {
+      if (activeIndex !== overIndex) {
         return arrayMove(tasks, activeIndex, overIndex);
       }
 
