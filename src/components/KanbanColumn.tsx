@@ -24,13 +24,16 @@ export function KanbanColumn({
   listId,
   onTaskClick,
 }: KanbanColumnProps) {
-  const { setNodeRef, isOver } = useDroppable({ id });
+  const { setNodeRef } = useDroppable({ id });
   const [editors, setEditors] = useState<number[]>([]);
 
   const hasContent = tasks.length > 0 || editors.length > 0;
 
   return (
-    <div className={`flex flex-col h-full min-w-[280px] w-[280px] p-1.5 rounded-lg bg-primary ${hasContent ? 'gap-1.5' : 'gap-0.75'}`}>
+    <div
+      ref={setNodeRef}
+      className={`flex flex-col h-full min-w-[280px] w-[280px] p-1.5 rounded-lg bg-primary ${hasContent ? 'gap-1.5' : 'gap-0.75'} transition-all`}
+    >
       {/* Column header */}
       <div className="flex items-center gap-2">
         <h3 className="font-medium text-xs border px-2 py-1 rounded-md">
@@ -43,10 +46,7 @@ export function KanbanColumn({
 
       {/* Column content - droppable zone */}
       <div
-        ref={setNodeRef}
-        className={`${hasContent ? 'flex-1' : ''} bg-primary rounded-lg transition-colors ${
-          isOver ? "ring-2 ring-ring" : ""
-        }`}
+        className={`${hasContent ? 'flex-1' : ''} bg-primary rounded-lg transition-colors`}
       >
         {hasContent && (
           <SortableContext
