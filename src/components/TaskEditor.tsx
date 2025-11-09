@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import type { KeyboardEvent } from 'react';
-import { Calendar, Flag, FolderKanban, X, Check } from 'lucide-react';
+import { Calendar, Flag, FolderKanban, X, CornerDownLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
@@ -25,6 +25,7 @@ export function TaskEditor({ listId, defaultStatus, onSave, onCancel, onEnter }:
   const [priority, setPriority] = useState<'low' | 'medium' | 'high' | undefined>(undefined);
   const [projectId, setProjectId] = useState<string | undefined>(undefined);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showPriorityPicker, setShowPriorityPicker] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -113,15 +114,15 @@ export function TaskEditor({ listId, defaultStatus, onSave, onCancel, onEnter }:
       <Input
         ref={inputRef}
         type="text"
-        placeholder="Task name"
+        placeholder="Task Name..."
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         onKeyDown={handleKeyDown}
-        className="mb-2 bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-sm font-medium py-0 px-2"
+        className="mb-2 bg-transparent! border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-sm font-medium py-0 px-2 placeholder:text-card-field"
       />
 
       {/* Expandable Options */}
-      <div className="space-y-1 mb-3">
+      <div className="">
         {/* Add Dates Button/Display */}
         <Popover open={showDatePicker} onOpenChange={setShowDatePicker}>
           <PopoverTrigger asChild>
@@ -129,7 +130,7 @@ export function TaskEditor({ listId, defaultStatus, onSave, onCancel, onEnter }:
               className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs transition-colors ${
                 dueDate
                   ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'
-                  : 'text-gray-400 hover:bg-secondary-foreground/10'
+                  : 'text-card-field hover:bg-secondary-foreground/10'
               }`}
             >
               <Calendar size={14} />
@@ -162,15 +163,15 @@ export function TaskEditor({ listId, defaultStatus, onSave, onCancel, onEnter }:
         </Popover>
 
         {/* Add Priority Button/Display */}
-        <Select value={priority} onValueChange={(value) => setPriority(value as 'low' | 'medium' | 'high')}>
-          <SelectTrigger
-            className={`w-full h-auto px-2 py-1.5 rounded text-xs border-none ${
-              priority
-                ? 'bg-orange-500/20 text-orange-400 hover:bg-orange-500/30'
-                : 'bg-transparent text-gray-400 hover:bg-secondary-foreground/10'
-            }`}
-          >
-            <div className="flex items-center gap-2">
+        <Popover open={showPriorityPicker} onOpenChange={setShowPriorityPicker}>
+          <PopoverTrigger asChild>
+            <button
+              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs transition-colors ${
+                priority
+                  ? 'bg-orange-500/20 text-orange-400 hover:bg-orange-500/30'
+                  : 'text-card-field hover:bg-secondary-foreground/10'
+              }`}
+            >
               <Flag size={14} />
               <span>{getPriorityLabel()}</span>
               {priority && (
@@ -183,14 +184,40 @@ export function TaskEditor({ listId, defaultStatus, onSave, onCancel, onEnter }:
                   }}
                 />
               )}
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-2" align="start">
+            <div className="flex flex-col gap-1">
+              <button
+                onClick={() => {
+                  setPriority('low');
+                  setShowPriorityPicker(false);
+                }}
+                className="px-3 py-2 text-sm text-left hover:bg-secondary rounded transition-colors"
+              >
+                Low
+              </button>
+              <button
+                onClick={() => {
+                  setPriority('medium');
+                  setShowPriorityPicker(false);
+                }}
+                className="px-3 py-2 text-sm text-left hover:bg-secondary rounded transition-colors"
+              >
+                Medium
+              </button>
+              <button
+                onClick={() => {
+                  setPriority('high');
+                  setShowPriorityPicker(false);
+                }}
+                className="px-3 py-2 text-sm text-left hover:bg-secondary rounded transition-colors"
+              >
+                High
+              </button>
             </div>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="low">Low</SelectItem>
-            <SelectItem value="medium">Medium</SelectItem>
-            <SelectItem value="high">High</SelectItem>
-          </SelectContent>
-        </Select>
+          </PopoverContent>
+        </Popover>
 
         {/* Add Project Button/Display */}
         {projects && projects.length > 0 && (
@@ -208,7 +235,7 @@ export function TaskEditor({ listId, defaultStatus, onSave, onCancel, onEnter }:
                 {projectId && (
                   <X
                     size={14}
-                    className="ml-auto flex-shrink-0"
+                    className="ml-auto shrink-0"
                     onClick={(e) => {
                       e.stopPropagation();
                       setProjectId(undefined);
@@ -229,15 +256,16 @@ export function TaskEditor({ listId, defaultStatus, onSave, onCancel, onEnter }:
       </div>
 
       {/* Action Buttons */}
-      <div className="flex items-center gap-0.5">
+      <div className="justify-end flex items-center">
         <Button
           size="sm"
+          variant="ghost"
           onClick={handleSave}
           disabled={!title.trim() || createTask.isPending}
           className="h-7 text-xs"
         >
-          <Check size={14} className="mr-1" />
           Save
+          <CornerDownLeft/>
         </Button>
         <Button
           size="sm"
@@ -246,8 +274,9 @@ export function TaskEditor({ listId, defaultStatus, onSave, onCancel, onEnter }:
           disabled={createTask.isPending}
           className="h-7 text-xs"
         >
-          <X size={14} className="mr-1" />
           Cancel
+          <X/>
+
         </Button>
       </div>
     </div>

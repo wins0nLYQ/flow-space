@@ -46,7 +46,8 @@ export function KanbanCard({ task, onClick, isOverlay = false }: KanbanCardProps
   useEffect(() => {
     if (isEditing && inputRef.current) {
       inputRef.current.focus();
-      inputRef.current.select();
+      const length = inputRef.current.value.length;
+      inputRef.current.setSelectionRange(length, length);
     }
   }, [isEditing]);
 
@@ -177,21 +178,21 @@ export function KanbanCard({ task, onClick, isOverlay = false }: KanbanCardProps
         </Popover>
       </div>
 
-      {/* Task Title - Editable */}
-      {isEditing ? (
-        <input
-          ref={inputRef}
-          type="text"
-          value={editedTitle}
-          onChange={(e) => setEditedTitle(e.target.value)}
-          onBlur={handleSaveEdit}
-          onKeyDown={handleKeyDown}
-          onClick={(e) => e.stopPropagation()}
-          className="font-medium text-sm mb-1 w-full bg-background border border-ring rounded px-2 py-1 outline-none focus:ring-2 focus:ring-ring"
-        />
-      ) : (
-        <h4 className="font-medium text-sm mb-1 pr-20">{task.title}</h4>
-      )}
+      {/* Task Title - Single Input with Conditional Behavior */}
+      <input
+        ref={inputRef}
+        type="text"
+        value={editedTitle}
+        onChange={(e) => setEditedTitle(e.target.value)}
+        onBlur={handleSaveEdit}
+        onKeyDown={handleKeyDown}
+        onClick={(e) => e.stopPropagation()}
+        readOnly={!isEditing}
+        placeholder={isEditing ? "Task Name..." : ""}
+        className={`font-medium text-sm outline-none border-0 p-0 m-0 bg-transparent w-full leading-5 h-5 ${
+          isEditing ? 'cursor-text' : 'cursor-pointer pointer-events-none'
+        }`}
+      />
 
       {task.description && (
         <p className="text-xs text-gray-400 line-clamp-2">{task.description}</p>

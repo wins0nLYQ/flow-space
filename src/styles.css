@@ -39,9 +39,12 @@
     --destructive-foreground: oklch(1 0 0);
 
     /* Border & Input */
-    --border: oklch(0.38 0.008 285.88);
+    --border: #424247;
     --input: oklch(0.8981 0.0054 286.32);
     --ring: oklch(0.2176 0.0108 285.75);
+
+    /* Text Colors */
+    --card-field: #7d7d7d;
 
     /* Chart Colors */
     --chart-1: oklch(0.629 0.257 16.246);
@@ -102,6 +105,7 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-card-field: var(--card-field);
 }
 
 /* ============================================
