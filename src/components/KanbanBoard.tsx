@@ -185,40 +185,56 @@ export function KanbanBoard({ lists }: KanbanBoardProps) {
       }
     }
 
-    // Calculate new order based on position
-    const tasksInNewStatus = localTasks.filter((t) => t.status === newStatus);
+    // Calculate new order based on the current position in localTasks (which has been optimistically updated)
+    // Use the visual order from arrayMove - DO NOT sort by display_order
+    const tasksInTargetColumn = localTasks.filter((t) => t.status === newStatus);
+
+    const draggedTaskIndex = tasksInTargetColumn.findIndex((t) => t.id === taskId);
+
     let newOrder: number;
 
-    if (overTask) {
-      // Dropped on another task - insert before/after based on position in localTasks
-      const overIndex = tasksInNewStatus.findIndex((t) => t.id === over.id);
-      const draggedIndex = tasksInNewStatus.findIndex((t) => t.id === taskId);
-
-      if (overIndex === 0) {
-        // Dropped at the beginning
-        newOrder = overTask.display_order - 500;
-      } else if (draggedIndex > overIndex) {
-        // Moving up - place before overTask
-        const prevTask = tasksInNewStatus[overIndex - 1];
-        newOrder = (prevTask.display_order + overTask.display_order) / 2;
-      } else {
-        // Moving down - place after overTask
-        const nextTask = tasksInNewStatus[overIndex + 1];
-        if (nextTask) {
-          newOrder = (overTask.display_order + nextTask.display_order) / 2;
-        } else {
-          newOrder = overTask.display_order + 500;
-        }
-      }
+    if (tasksInTargetColumn.length === 1) {
+      // Only task in the column
+      newOrder = 1000;
+    } else if (draggedTaskIndex === 0) {
+      // Task is at the beginning of the column
+      const nextTask = tasksInTargetColumn[1];
+      newOrder = nextTask.display_order - 500;
+    } else if (draggedTaskIndex === tasksInTargetColumn.length - 1) {
+      // Task is at the end of the column
+      const prevTask = tasksInTargetColumn[draggedTaskIndex - 1];
+      newOrder = prevTask.display_order + 500;
     } else {
-      // Dropped on empty column or at the end
-      const maxOrder = tasksInNewStatus.reduce((max, t) => Math.max(max, t.display_order), 0);
-      newOrder = maxOrder + 1000;
+      // Task is in the middle - calculate midpoint between neighbors
+      const prevTask = tasksInTargetColumn[draggedTaskIndex - 1];
+      const nextTask = tasksInTargetColumn[draggedTaskIndex + 1];
+      newOrder = (prevTask.display_order + nextTask.display_order) / 2;
     }
+
+    // Update localTasks with the new display_order BEFORE mutation
+    // This ensures localTasks already reflects the final state
+    setLocalTasks((currentTasks) =>
+      currentTasks.map((t) =>
+        t.id === taskId
+          ? { ...t, status: newStatus, display_order: newOrder }
+          : t
+      )
+    );
+
+    console.log('🎯 Drag End Debug:', {
+      taskId,
+      taskTitle: draggedTask.title,
+      oldStatus: draggedTask.status,
+      newStatus,
+      oldOrder: draggedTask.display_order,
+      newOrder,
+      draggedTaskIndex,
+      totalInColumn: tasksInTargetColumn.length,
+    });
 
     // Update backend with both status and order
     const statusChanged = draggedTask.status !== newStatus;
-    const orderChanged = draggedTask.display_order !== newOrder;
+    const orderChanged = Math.abs(draggedTask.display_order - newOrder) > 0.01; // Use small epsilon for float comparison
 
     if (statusChanged || orderChanged) {
       try {
@@ -227,15 +243,22 @@ export function KanbanBoard({ lists }: KanbanBoardProps) {
           status: newStatus,
           display_order: newOrder,
         });
+        console.log('✅ Task updated successfully:', { taskId, status: newStatus, display_order: newOrder });
       } catch (error) {
-        console.error('Failed to update task:', error);
+        console.error('❌ Failed to update task:', error);
         // Revert on error
         setLocalTasks(tasks);
+      } finally {
+        // Only clear drag state AFTER mutation completes (success or error)
+        setActiveTask(null);
+        isDraggingRef.current = false;
       }
+    } else {
+      console.log('⏭️  No changes needed - skipping update');
+      // No mutation needed, safe to clear drag state immediately
+      setActiveTask(null);
+      isDraggingRef.current = false;
     }
-
-    setActiveTask(null);
-    isDraggingRef.current = false;
   };
 
   const handleDragCancel = () => {
