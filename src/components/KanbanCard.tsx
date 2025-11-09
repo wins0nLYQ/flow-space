@@ -15,9 +15,10 @@ import { cn } from '@/lib/utils';
 interface KanbanCardProps {
   task: Task;
   onClick?: () => void;
+  isOverlay?: boolean;
 }
 
-export function KanbanCard({ task, onClick }: KanbanCardProps) {
+export function KanbanCard({ task, onClick, isOverlay = false }: KanbanCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(task.title);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -48,6 +49,13 @@ export function KanbanCard({ task, onClick }: KanbanCardProps) {
       inputRef.current.select();
     }
   }, [isEditing]);
+
+  // Close popover when dragging starts
+  useEffect(() => {
+    if (isDragging && isPopoverOpen) {
+      setIsPopoverOpen(false);
+    }
+  }, [isDragging, isPopoverOpen]);
 
   const handleMarkComplete = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -113,7 +121,8 @@ export function KanbanCard({ task, onClick }: KanbanCardProps) {
       {/* Hover Actions */}
       <div className={cn(
         "absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex border border-border/50 bg-secondary rounded-md p-0.5",
-        isPopoverOpen && "opacity-100"
+        isPopoverOpen && "opacity-100",
+        (isDragging || isOverlay) && "hidden"
       )}>
         <Button
           variant="ghost"

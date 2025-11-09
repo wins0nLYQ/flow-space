@@ -309,7 +309,11 @@ export function KanbanBoard({ lists }: KanbanBoardProps) {
         </div>
 
         <DragOverlay>
-          {activeTask ? <KanbanCard task={activeTask} /> : null}
+          {activeTask ? (
+            <div style={{ transform: 'rotate(-2deg)' }}>
+              <KanbanCard task={activeTask} isOverlay={true} />
+            </div>
+          ) : null}
         </DragOverlay>
       </DndContext>
 
