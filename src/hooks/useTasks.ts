@@ -71,8 +71,8 @@ export const useUpdateTaskStatus = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: string }) =>
-      tasksApi.updateStatus(id, status),
+    mutationFn: ({ id, status, display_order }: { id: string; status: string; display_order?: number }) =>
+      tasksApi.updateStatus(id, status, display_order),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['tasks', data.id] });

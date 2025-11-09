@@ -153,7 +153,7 @@ app.get('/api/tasks/list/:listId', async (req, res) => {
        FROM tasks t
        LEFT JOIN projects p ON t.project_id = p.id
        WHERE t.list_id = $1
-       ORDER BY t.created_at DESC`,
+       ORDER BY t.display_order ASC`,
       [req.params.listId]
     );
     res.json(tasks);
@@ -180,10 +180,21 @@ app.get('/api/tasks/:id', async (req, res) => {
 
 app.post('/api/tasks', async (req, res) => {
   try {
-    const { list_id, project_id, title, description, due_date, priority, status } = req.body;
+    const { list_id, project_id, title, description, due_date, priority, status, display_order } = req.body;
+
+    // If no display_order provided, calculate max order for the status and add 1000
+    let order = display_order;
+    if (order === undefined || order === null) {
+      const maxOrderResult = await queryOne<{ max_order: number }>(
+        'SELECT COALESCE(MAX(display_order), 0) as max_order FROM tasks WHERE list_id = $1 AND status = $2',
+        [list_id, status || 'To Do']
+      );
+      order = (maxOrderResult?.max_order || 0) + 1000;
+    }
+
     const task = await queryOne(
-      'INSERT INTO tasks (list_id, project_id, title, description, due_date, priority, status) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-      [list_id, project_id || null, title, description || null, due_date || null, priority || 'medium', status || 'To Do']
+      'INSERT INTO tasks (list_id, project_id, title, description, due_date, priority, status, display_order) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+      [list_id, project_id || null, title, description || null, due_date || null, priority || 'medium', status || 'To Do', order]
     );
     res.status(201).json(task);
   } catch (error: any) {
@@ -193,10 +204,10 @@ app.post('/api/tasks', async (req, res) => {
 
 app.put('/api/tasks/:id', async (req, res) => {
   try {
-    const { title, description, due_date, priority, status, project_id } = req.body;
+    const { title, description, due_date, priority, status, project_id, display_order } = req.body;
     const task = await queryOne(
-      'UPDATE tasks SET title = COALESCE($2, title), description = COALESCE($3, description), due_date = COALESCE($4, due_date), priority = COALESCE($5, priority), status = COALESCE($6, status), project_id = COALESCE($7, project_id) WHERE id = $1 RETURNING *',
-      [req.params.id, title, description, due_date, priority, status, project_id]
+      'UPDATE tasks SET title = COALESCE($2, title), description = COALESCE($3, description), due_date = COALESCE($4, due_date), priority = COALESCE($5, priority), status = COALESCE($6, status), project_id = COALESCE($7, project_id), display_order = COALESCE($8, display_order) WHERE id = $1 RETURNING *',
+      [req.params.id, title, description, due_date, priority, status, project_id, display_order]
     );
     if (!task) return res.status(404).json({ error: 'Task not found' });
     res.json(task);
@@ -207,13 +218,74 @@ app.put('/api/tasks/:id', async (req, res) => {
 
 app.patch('/api/tasks/:id/status', async (req, res) => {
   try {
-    const { status } = req.body;
+    const { status, display_order } = req.body;
+
+    // If moving to new status and no order provided, calculate max order for new status
+    let order = display_order;
+    if (status && (order === undefined || order === null)) {
+      const task = await queryOne<{ list_id: string }>(
+        'SELECT list_id FROM tasks WHERE id = $1',
+        [req.params.id]
+      );
+      if (task) {
+        const maxOrderResult = await queryOne<{ max_order: number }>(
+          'SELECT COALESCE(MAX(display_order), 0) as max_order FROM tasks WHERE list_id = $1 AND status = $2',
+          [task.list_id, status]
+        );
+        order = (maxOrderResult?.max_order || 0) + 1000;
+      }
+    }
+
+    const updateFields = ['status = $2'];
+    const params: any[] = [req.params.id, status];
+
+    if (order !== undefined && order !== null) {
+      updateFields.push(`display_order = $${params.length + 1}`);
+      params.push(order);
+    }
+
     const task = await queryOne(
-      'UPDATE tasks SET status = $2 WHERE id = $1 RETURNING *',
-      [req.params.id, status]
+      `UPDATE tasks SET ${updateFields.join(', ')} WHERE id = $1 RETURNING *`,
+      params
     );
     if (!task) return res.status(404).json({ error: 'Task not found' });
     res.json(task);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Bulk update task order (for efficient drag-and-drop operations)
+app.patch('/api/tasks/bulk/order', async (req, res) => {
+  try {
+    const { updates } = req.body;
+
+    if (!Array.isArray(updates) || updates.length === 0) {
+      return res.status(400).json({ error: 'Updates array is required' });
+    }
+
+    // Validate updates structure
+    for (const update of updates) {
+      if (!update.id || update.display_order === undefined) {
+        return res.status(400).json({ error: 'Each update must have id and display_order' });
+      }
+    }
+
+    // Perform bulk update in a transaction
+    const client = await query('BEGIN', []);
+    try {
+      for (const update of updates) {
+        await query(
+          'UPDATE tasks SET display_order = $1, status = COALESCE($2, status) WHERE id = $3',
+          [update.display_order, update.status, update.id]
+        );
+      }
+      await query('COMMIT', []);
+      res.json({ success: true, updated: updates.length });
+    } catch (error) {
+      await query('ROLLBACK', []);
+      throw error;
+    }
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

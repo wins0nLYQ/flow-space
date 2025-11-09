@@ -26,8 +26,16 @@ export const tasksApi = {
     return apiClient.put<Task>(`/tasks/${id}`, input);
   },
 
-  updateStatus: async (id: string, status: string): Promise<Task> => {
-    return apiClient.patch<Task>(`/tasks/${id}/status`, { status });
+  updateStatus: async (id: string, status: string, display_order?: number): Promise<Task> => {
+    return apiClient.patch<Task>(`/tasks/${id}/status`, { status, display_order });
+  },
+
+  updateOrder: async (id: string, display_order: number, status?: string): Promise<Task> => {
+    return apiClient.put<Task>(`/tasks/${id}`, { display_order, status });
+  },
+
+  bulkUpdateOrder: async (updates: Array<{ id: string; display_order: number; status?: string }>): Promise<{ success: boolean; updated: number }> => {
+    return apiClient.patch<{ success: boolean; updated: number }>('/tasks/bulk/order', { updates });
   },
 
   delete: async (id: string): Promise<void> => {

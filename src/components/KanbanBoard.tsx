@@ -44,8 +44,7 @@ export function KanbanBoard({ lists }: KanbanBoardProps) {
     }
   }, [tasks]);
 
-  // Group tasks by status
-  // Note: Order is maintained in localTasks array via arrayMove during drag operations
+  // Group tasks by status and sort by display_order
   const tasksByStatus = useMemo(() => {
     const grouped: Record<string, Task[]> = {};
 
@@ -61,6 +60,11 @@ export function KanbanBoard({ lists }: KanbanBoardProps) {
         grouped[status] = [];
       }
       grouped[status].push(task);
+    });
+
+    // Sort each column by display_order
+    Object.keys(grouped).forEach((status) => {
+      grouped[status].sort((a, b) => a.display_order - b.display_order);
     });
 
     return grouped;
@@ -154,10 +158,10 @@ export function KanbanBoard({ lists }: KanbanBoardProps) {
     }
 
     const taskId = active.id as string;
-    const activeTask = localTasks.find((t) => t.id === taskId);
+    const draggedTask = localTasks.find((t) => t.id === taskId);
     const overTask = localTasks.find((t) => t.id === over.id);
 
-    if (!activeTask) {
+    if (!draggedTask) {
       setActiveTask(null);
       isDraggingRef.current = false;
       return;
@@ -181,22 +185,54 @@ export function KanbanBoard({ lists }: KanbanBoardProps) {
       }
     }
 
-    // Only update backend if status changed
-    if (activeTask.status !== newStatus) {
+    // Calculate new order based on position
+    const tasksInNewStatus = localTasks.filter((t) => t.status === newStatus);
+    let newOrder: number;
+
+    if (overTask) {
+      // Dropped on another task - insert before/after based on position in localTasks
+      const overIndex = tasksInNewStatus.findIndex((t) => t.id === over.id);
+      const draggedIndex = tasksInNewStatus.findIndex((t) => t.id === taskId);
+
+      if (overIndex === 0) {
+        // Dropped at the beginning
+        newOrder = overTask.display_order - 500;
+      } else if (draggedIndex > overIndex) {
+        // Moving up - place before overTask
+        const prevTask = tasksInNewStatus[overIndex - 1];
+        newOrder = (prevTask.display_order + overTask.display_order) / 2;
+      } else {
+        // Moving down - place after overTask
+        const nextTask = tasksInNewStatus[overIndex + 1];
+        if (nextTask) {
+          newOrder = (overTask.display_order + nextTask.display_order) / 2;
+        } else {
+          newOrder = overTask.display_order + 500;
+        }
+      }
+    } else {
+      // Dropped on empty column or at the end
+      const maxOrder = tasksInNewStatus.reduce((max, t) => Math.max(max, t.display_order), 0);
+      newOrder = maxOrder + 1000;
+    }
+
+    // Update backend with both status and order
+    const statusChanged = draggedTask.status !== newStatus;
+    const orderChanged = draggedTask.display_order !== newOrder;
+
+    if (statusChanged || orderChanged) {
       try {
         await updateTaskStatus.mutateAsync({
           id: taskId,
           status: newStatus,
+          display_order: newOrder,
         });
       } catch (error) {
-        console.error('Failed to update task status:', error);
+        console.error('Failed to update task:', error);
         // Revert on error
         setLocalTasks(tasks);
       }
     }
-    // Note: For same-column reordering, we keep the local state change
-    // but don't persist to backend since there's no order field in the Task model
-    // The order will reset on page refresh
 
     setActiveTask(null);
     isDraggingRef.current = false;

@@ -112,7 +112,7 @@ export function KanbanCard({ task, onClick }: KanbanCardProps) {
     >
       {/* Hover Actions */}
       <div className={cn(
-        "absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex border border-border/50 bg-secondary/10 rounded-md p-0.5",
+        "absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex border border-border/50 bg-secondary rounded-md p-0.5",
         isPopoverOpen && "opacity-100"
       )}>
         <Button
@@ -120,7 +120,7 @@ export function KanbanCard({ task, onClick }: KanbanCardProps) {
           size="icon-sm"
           onClick={handleMarkComplete}
           disabled={task.status === 'Done'}
-          className="h-6 w-6 bg-transparent backdrop-blur-sm shadow-sm hover:bg-secondary!"
+          className="h-6 w-6 bg-transparent backdrop-blur-sm shadow-sm hover:bg-border!"
           title="Mark complete"
         >
           <CheckCircle className="h-3.5 w-3.5" />
@@ -130,7 +130,7 @@ export function KanbanCard({ task, onClick }: KanbanCardProps) {
           variant="ghost"
           size="icon-sm"
           onClick={handleEditClick}
-          className="h-6 w-6 bg-transparent backdrop-blur-sm shadow-sm hover:bg-secondary!"
+          className="h-6 w-6 bg-transparent backdrop-blur-sm shadow-sm hover:bg-border!"
           title="Edit task name"
         >
           <Edit className="h-3.5 w-3.5" />
@@ -141,7 +141,7 @@ export function KanbanCard({ task, onClick }: KanbanCardProps) {
             <Button
               variant="ghost"
               size="icon-sm"
-              className="h-6 w-6 bg-transparent backdrop-blur-sm shadow-sm hover:bg-secondary!"
+              className="h-6 w-6 bg-transparent backdrop-blur-sm shadow-sm hover:bg-border!"
               title="More actions"
             >
               <MoreVertical className="h-3.5 w-3.5" />

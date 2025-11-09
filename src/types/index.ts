@@ -39,6 +39,7 @@ export interface Task {
   due_date: string | null;
   priority: 'low' | 'medium' | 'high';
   status: string;
+  display_order: number;
   created_at: string;
   updated_at: string;
 }
@@ -82,6 +83,7 @@ export interface CreateTaskInput {
   due_date?: string;
   priority?: 'low' | 'medium' | 'high';
   status?: string;
+  display_order?: number;
 }
 
 export interface CreateProjectInput {
